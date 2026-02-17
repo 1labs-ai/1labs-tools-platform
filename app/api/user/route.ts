@@ -1,10 +1,6 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import { 
-  getOrCreateUserProfile, 
-  getTransactionHistory, 
-  getGenerationHistory 
-} from '@/lib/credits';
+import { isConvexConfigured, INITIAL_CREDITS } from '@/lib/convex';
 
 export async function GET() {
   try {
@@ -15,31 +11,37 @@ export async function GET() {
     }
 
     const user = await currentUser();
-    
-    // Get or create user profile
-    const profile = await getOrCreateUserProfile(
-      userId,
-      user?.emailAddresses?.[0]?.emailAddress,
-      user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : undefined
-    );
 
-    // Get recent transactions
-    const transactions = await getTransactionHistory(userId, 10);
+    // If Convex not configured, return mock data
+    // TODO: Replace with actual Convex calls once initialized
+    if (!isConvexConfigured()) {
+      return NextResponse.json({
+        profile: {
+          id: 'mock-id',
+          credits: INITIAL_CREDITS,
+          plan: 'free',
+          email: user?.emailAddresses?.[0]?.emailAddress || null,
+          name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : null,
+          createdAt: new Date().toISOString(),
+        },
+        recentTransactions: [],
+        recentGenerations: [],
+      });
+    }
 
-    // Get recent generations
-    const generations = await getGenerationHistory(userId, 10);
-
+    // When Convex is configured, this will use the real client
+    // For now, return mock data
     return NextResponse.json({
       profile: {
-        id: profile.id,
-        credits: profile.credits,
-        plan: profile.plan,
-        email: profile.email,
-        name: profile.name,
-        createdAt: profile.created_at,
+        id: userId,
+        credits: INITIAL_CREDITS,
+        plan: 'free',
+        email: user?.emailAddresses?.[0]?.emailAddress || null,
+        name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : null,
+        createdAt: new Date().toISOString(),
       },
-      recentTransactions: transactions,
-      recentGenerations: generations,
+      recentTransactions: [],
+      recentGenerations: [],
     });
   } catch (error) {
     console.error('Error fetching user data:', error);

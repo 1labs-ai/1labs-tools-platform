@@ -56,9 +56,10 @@ CREATE INDEX IF NOT EXISTS idx_generations_created_at ON generations(created_at 
 CREATE TABLE IF NOT EXISTS api_keys (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+  clerk_id VARCHAR(255) NOT NULL, -- Clerk user ID for direct lookup
   name VARCHAR(255) NOT NULL,
-  key_prefix VARCHAR(20) NOT NULL, -- First few chars for identification (e.g., "1lab_sk_abc...")
-  key_hash VARCHAR(255) NOT NULL, -- SHA-256 hash of the full key
+  key_prefix VARCHAR(20) NOT NULL, -- First few chars for identification (e.g., "1labs_abc...")
+  key_hash VARCHAR(255) NOT NULL UNIQUE, -- SHA-256 hash of the full key
   last_used_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   revoked_at TIMESTAMP WITH TIME ZONE
@@ -66,6 +67,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
 
 -- Index for API keys
 CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON api_keys(user_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_clerk_id ON api_keys(clerk_id);
 CREATE INDEX IF NOT EXISTS idx_api_keys_key_hash ON api_keys(key_hash);
 
 -- Row Level Security (RLS) Policies

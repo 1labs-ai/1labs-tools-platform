@@ -84,6 +84,9 @@ export function Header() {
             <Link href="/pricing" className="text-[15px] text-gray-600 hover:text-gray-900 transition-colors">
               Pricing
             </Link>
+            <Link href="/docs" className="text-[15px] text-gray-600 hover:text-gray-900 transition-colors">
+              API Docs
+            </Link>
           </nav>
 
           {/* Auth Buttons */}

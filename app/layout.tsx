@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -39,13 +40,15 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en" className="scroll-smooth">
-        <body className={`${inter.className} bg-white text-[#131314] min-h-screen flex flex-col antialiased`}>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </body>
-      </html>
+      <ConvexClientProvider>
+        <html lang="en" className="scroll-smooth">
+          <body className={`${inter.className} bg-white text-[#131314] min-h-screen flex flex-col antialiased`}>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </body>
+        </html>
+      </ConvexClientProvider>
     </ClerkProvider>
   );
 }
