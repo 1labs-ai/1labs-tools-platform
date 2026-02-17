@@ -79,14 +79,14 @@ const creditUsage = [
 
 export default function PricingPage() {
   return (
-    <div className="min-h-[calc(100vh-4rem)] py-16 px-4">
+    <div className="min-h-[calc(100vh-8rem)] py-16 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
             Simple, Credit-Based Pricing
           </h1>
-          <p className="text-gray-400 max-w-2xl mx-auto">
+          <p className="text-gray-500 max-w-2xl mx-auto">
             Start free with 25 credits. Upgrade when you need more. 
             No hidden fees, no surprises.
           </p>
@@ -97,32 +97,32 @@ export default function PricingPage() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative bg-gray-900 border rounded-xl p-6 ${
+              className={`relative bg-white border rounded-2xl p-6 shadow-sm ${
                 plan.highlighted 
-                  ? "border-purple-500 ring-1 ring-purple-500" 
-                  : "border-gray-800"
+                  ? "border-pink-400 ring-2 ring-pink-400/20" 
+                  : "border-gray-200"
               }`}
             >
               {plan.highlighted && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full">
+                  <span className="bg-pink-500 text-white text-xs px-3 py-1 rounded-full">
                     Most Popular
                   </span>
                 </div>
               )}
 
               <div className="mb-4">
-                <h3 className="text-lg font-semibold">{plan.name}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
                 <p className="text-gray-500 text-sm">{plan.description}</p>
               </div>
 
               <div className="mb-4">
-                <span className="text-3xl font-bold">{plan.price}</span>
+                <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
                 <span className="text-gray-500">{plan.period}</span>
               </div>
 
               <div className="mb-6">
-                <span className="inline-block bg-purple-900/50 text-purple-400 text-sm px-3 py-1 rounded-full">
+                <span className="inline-block bg-pink-50 text-pink-600 text-sm px-3 py-1 rounded-full">
                   {plan.credits}
                 </span>
               </div>
@@ -131,7 +131,7 @@ export default function PricingPage() {
                 {plan.features.map((feature, index) => (
                   <li key={index} className="flex items-start text-sm">
                     <span className="text-green-500 mr-2">✓</span>
-                    <span className="text-gray-400">{feature}</span>
+                    <span className="text-gray-600">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -140,8 +140,8 @@ export default function PricingPage() {
                 href={plan.href}
                 className={`block w-full text-center py-2 rounded-lg font-medium transition ${
                   plan.highlighted
-                    ? "bg-purple-600 hover:bg-purple-700 text-white"
-                    : "bg-gray-800 hover:bg-gray-700 text-white"
+                    ? "bg-pink-500 hover:bg-pink-600 text-white"
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                 }`}
               >
                 {plan.cta}
@@ -153,19 +153,19 @@ export default function PricingPage() {
         {/* Credit Usage Table */}
         <div className="max-w-2xl mx-auto">
           <h2 className="text-xl font-bold mb-6 text-center">Credit Usage</h2>
-          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-800">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Tool</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">Credits</th>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Tool</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600">Credits</th>
                 </tr>
               </thead>
               <tbody>
                 {creditUsage.map((item) => (
-                  <tr key={item.tool} className="border-b border-gray-800 last:border-0">
-                    <td className="py-3 px-4">{item.tool}</td>
-                    <td className="py-3 px-4 text-right text-purple-400">{item.credits}</td>
+                  <tr key={item.tool} className="border-b border-gray-200 last:border-0">
+                    <td className="py-3 px-4 text-gray-700">{item.tool}</td>
+                    <td className="py-3 px-4 text-right text-pink-500 font-medium">{item.credits}</td>
                   </tr>
                 ))}
               </tbody>
@@ -177,21 +177,21 @@ export default function PricingPage() {
         <div className="max-w-2xl mx-auto mt-16">
           <h2 className="text-xl font-bold mb-6 text-center">FAQ</h2>
           <div className="space-y-4">
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-              <h3 className="font-medium mb-2">What happens when I run out of credits?</h3>
-              <p className="text-gray-400 text-sm">
+            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <h3 className="font-medium mb-2 text-gray-900">What happens when I run out of credits?</h3>
+              <p className="text-gray-500 text-sm">
                 You can purchase more credits or upgrade your plan. Free users can always earn more credits by referring friends.
               </p>
             </div>
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-              <h3 className="font-medium mb-2">Do unused credits roll over?</h3>
-              <p className="text-gray-400 text-sm">
+            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <h3 className="font-medium mb-2 text-gray-900">Do unused credits roll over?</h3>
+              <p className="text-gray-500 text-sm">
                 Yes! Paid plans allow credits to roll over up to 2x your monthly allocation.
               </p>
             </div>
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-              <h3 className="font-medium mb-2">Can I cancel anytime?</h3>
-              <p className="text-gray-400 text-sm">
+            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <h3 className="font-medium mb-2 text-gray-900">Can I cancel anytime?</h3>
+              <p className="text-gray-500 text-sm">
                 Absolutely. Cancel anytime with no questions asked. You&apos;ll keep access until the end of your billing period.
               </p>
             </div>
