@@ -42,7 +42,7 @@ export default function RootLayout({
       <html lang="en" className="scroll-smooth">
         <body className={`${inter.className} bg-white text-[#131314] min-h-screen flex flex-col antialiased`}>
           <Header />
-          <main className="flex-1 pt-24">{children}</main>
+          <main className="flex-1">{children}</main>
           <Footer />
         </body>
       </html>
