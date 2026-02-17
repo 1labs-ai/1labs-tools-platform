@@ -2,13 +2,30 @@
 
 import Link from "next/link";
 import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
 
 export function Header() {
-  const { isSignedIn, isLoaded, user } = useUser();
-  
-  // TODO: Fetch actual credits from database
-  // For now using publicMetadata or default value
-  const credits = (user?.publicMetadata?.credits as number) ?? 25;
+  const { isSignedIn, isLoaded } = useUser();
+  const [credits, setCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      fetchCredits();
+    }
+  }, [isSignedIn]);
+
+  const fetchCredits = async () => {
+    try {
+      const response = await fetch("/api/user");
+      if (response.ok) {
+        const data = await response.json();
+        setCredits(data.profile?.credits ?? 25);
+      }
+    } catch (error) {
+      console.error("Failed to fetch credits:", error);
+      setCredits(25); // Default fallback
+    }
+  };
 
   return (
     <header 
@@ -76,19 +93,24 @@ export function Header() {
             ) : isSignedIn ? (
               <>
                 {/* Credits Display */}
-                <div className="flex items-center gap-1.5 bg-purple-50 px-3 py-1.5 rounded-full">
+                <Link 
+                  href="/dashboard"
+                  className="flex items-center gap-1.5 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-full transition-colors"
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="12" r="10" stroke="#7C3AED" strokeWidth="2"/>
-                    <path d="M12 6v12M8 10l4-4 4 4M8 14l4 4 4-4" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 8v8M9 12h6" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
-                  <span className="text-[13px] font-semibold text-purple-700">{credits}</span>
+                  <span className="text-[13px] font-semibold text-purple-700">
+                    {credits !== null ? credits : '...'}
+                  </span>
                   <span className="text-[11px] text-purple-500">credits</span>
-                </div>
+                </Link>
                 <Link 
-                  href="/account" 
+                  href="/dashboard" 
                   className="text-[14px] text-gray-600 hover:text-gray-900 transition-colors"
                 >
-                  Account
+                  Dashboard
                 </Link>
                 <UserButton 
                   afterSignOutUrl="/"
