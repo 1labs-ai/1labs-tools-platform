@@ -88,25 +88,28 @@ export default function RoadmapPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
-          <p className="text-sm text-gray-500 mb-3">
-            ✨ Free AI Tool from <span className="text-pink-500">1Labs.ai</span>
-          </p>
-          <h1 className="text-3xl md:text-4xl font-bold mb-3">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 bg-[#FEFCF7] border border-[#F5E6D3] rounded-full px-4 py-2 mb-6 creme-badge-shadow">
+            <span className="text-[13px] font-medium text-[#58585a]">✨ Free AI Tool from</span>
+            <span className="text-[13px] font-semibold" style={{ color: '#EC4899' }}>1Labs.ai</span>
+          </div>
+          
+          <h1 className="text-3xl md:text-4xl font-bold mb-3 text-[#131314]">
             AI Product{" "}
-            <span className="gradient-text">Roadmap Generator</span>
+            <span className="product-os-text">Roadmap Generator</span>
           </h1>
-          <p className="text-gray-500">
+          <p className="text-[#58585a] text-[15px] leading-relaxed max-w-lg mx-auto">
             Get a complete 6-week roadmap for your AI product in seconds.
             The same framework we use to ship MVPs.
           </p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-[24px] p-8 shadow-sm">
           <div className="space-y-5">
             {/* Product Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-[13px] font-medium text-[#131314] mb-2">
                 Product Name
               </label>
               <input
@@ -114,13 +117,13 @@ export default function RoadmapPage() {
                 value={formData.productName}
                 onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
                 placeholder="e.g., AI Writing Assistant"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-400"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
               />
             </div>
 
             {/* Problem */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-[13px] font-medium text-[#131314] mb-2">
                 What problem are you solving?
               </label>
               <textarea
@@ -128,13 +131,13 @@ export default function RoadmapPage() {
                 onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
                 placeholder="Describe the pain point your product addresses..."
                 rows={3}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-400 resize-none"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400 resize-none"
               />
             </div>
 
             {/* Target Audience */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-[13px] font-medium text-[#131314] mb-2">
                 Target Audience
               </label>
               <input
@@ -142,13 +145,13 @@ export default function RoadmapPage() {
                 value={formData.targetAudience}
                 onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
                 placeholder="e.g., Content marketers at SaaS companies"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-400"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
               />
             </div>
 
             {/* Value Proposition */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-[13px] font-medium text-[#131314] mb-2">
                 Core Value Proposition
               </label>
               <input
@@ -156,19 +159,19 @@ export default function RoadmapPage() {
                 value={formData.valueProposition}
                 onChange={(e) => setFormData({ ...formData, valueProposition: e.target.value })}
                 placeholder="The ONE thing your product does better than anything else"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-400"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
               />
             </div>
 
             {/* Preferred LLM */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-[13px] font-medium text-[#131314] mb-2">
                 Preferred LLM
               </label>
               <select
                 value={formData.preferredLLM}
                 onChange={(e) => setFormData({ ...formData, preferredLLM: e.target.value })}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-400"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
               >
                 <option value="">Select...</option>
                 <option value="gpt-4">GPT-4</option>
@@ -181,7 +184,7 @@ export default function RoadmapPage() {
 
             {/* Key Features */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-[13px] font-medium text-[#131314] mb-2">
                 Key Features (up to 3)
               </label>
               <div className="space-y-3">
@@ -192,12 +195,12 @@ export default function RoadmapPage() {
                       value={formData.features[index]}
                       onChange={(e) => handleFeatureChange(index, e.target.value)}
                       placeholder={`Feature ${index + 1}`}
-                      className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-400"
+                      className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                     />
                     <select
                       value={formData.featurePriorities[index]}
                       onChange={(e) => handlePriorityChange(index, e.target.value)}
-                      className={`w-24 bg-gray-50 border border-gray-200 rounded-lg px-3 py-3 focus:outline-none ${priorityColors[formData.featurePriorities[index] as keyof typeof priorityColors]}`}
+                      className={`w-24 bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-[13px] focus:outline-none ${priorityColors[formData.featurePriorities[index] as keyof typeof priorityColors]}`}
                     >
                       <option value="must">🔴 Must</option>
                       <option value="should">🟡 Should</option>
@@ -209,7 +212,7 @@ export default function RoadmapPage() {
             </div>
 
             {error && (
-              <p className="text-red-500 text-sm">{error}</p>
+              <p className="text-red-500 text-[13px]">{error}</p>
             )}
 
             {/* Submit Button */}
@@ -217,7 +220,7 @@ export default function RoadmapPage() {
               {!isLoaded ? (
                 <button 
                   disabled
-                  className="w-full bg-gray-300 text-gray-500 py-3 rounded-lg font-medium"
+                  className="w-full bg-gray-300 text-gray-500 py-3.5 rounded-xl font-medium text-[15px]"
                 >
                   Loading...
                 </button>
@@ -225,18 +228,18 @@ export default function RoadmapPage() {
                 <button
                   onClick={generateRoadmap}
                   disabled={loading}
-                  className="w-full bg-gray-700 hover:bg-gray-800 disabled:bg-gray-400 text-white py-3 rounded-lg font-medium transition"
+                  className="w-full bg-[#58585a] hover:bg-[#3d3d3e] disabled:bg-gray-400 text-white py-3.5 rounded-xl font-medium transition-colors text-[15px]"
                 >
                   {loading ? "Generating..." : "Generate My Roadmap →"}
                 </button>
               ) : (
                 <SignInButton mode="modal">
-                  <button className="w-full bg-gray-700 hover:bg-gray-800 text-white py-3 rounded-lg font-medium transition">
+                  <button className="w-full bg-[#58585a] hover:bg-[#3d3d3e] text-white py-3.5 rounded-xl font-medium transition-colors text-[15px]">
                     Generate My Roadmap →
                   </button>
                 </SignInButton>
               )}
-              <p className="text-center text-sm text-pink-500 mt-3">
+              <p className="text-center text-[13px] mt-3" style={{ color: '#EC4899' }}>
                 Sign up free to get 50 credits
               </p>
             </div>
@@ -245,10 +248,10 @@ export default function RoadmapPage() {
 
         {/* Roadmap Output */}
         {roadmap && (
-          <div className="mt-8 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
+          <div className="mt-8 bg-white border border-gray-200 rounded-[24px] p-8 shadow-sm">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold mb-2">{roadmap.productName}</h2>
-              <p className="text-gray-500">{roadmap.vision}</p>
+              <h2 className="text-2xl font-bold mb-2 text-[#131314]">{roadmap.productName}</h2>
+              <p className="text-[#58585a] text-[14px]">{roadmap.vision}</p>
             </div>
 
             <div className="space-y-4">
@@ -258,13 +261,13 @@ export default function RoadmapPage() {
                   className="bg-gray-50 border border-gray-200 rounded-xl p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-pink-500 font-medium">{item.week}</span>
-                    <span className={`text-xs font-medium ${priorityColors[item.priority]}`}>
+                    <span className="font-medium text-[14px]" style={{ color: '#EC4899' }}>{item.week}</span>
+                    <span className={`text-[11px] font-medium ${priorityColors[item.priority]}`}>
                       {item.priority.toUpperCase()}
                     </span>
                   </div>
-                  <h3 className="font-semibold mb-1">{item.title}</h3>
-                  <p className="text-gray-500 text-sm">{item.description}</p>
+                  <h3 className="font-semibold mb-1 text-[#131314]">{item.title}</h3>
+                  <p className="text-[#58585a] text-[13px]">{item.description}</p>
                 </div>
               ))}
             </div>
@@ -272,13 +275,13 @@ export default function RoadmapPage() {
             <div className="mt-6 flex gap-4 pt-4 border-t border-gray-200">
               <button
                 onClick={() => navigator.clipboard.writeText(JSON.stringify(roadmap, null, 2))}
-                className="text-sm text-gray-500 hover:text-gray-700 transition"
+                className="text-[13px] text-[#58585a] hover:text-[#131314] transition-colors"
               >
                 📋 Copy JSON
               </button>
               <button
                 onClick={() => setRoadmap(null)}
-                className="text-sm text-gray-500 hover:text-gray-700 transition"
+                className="text-[13px] text-[#58585a] hover:text-[#131314] transition-colors"
               >
                 🔄 Generate New
               </button>

@@ -5,11 +5,31 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
-  title: "1Labs AI Tools - Free AI-Powered Tools for Product Teams",
-  description: "AI Product Roadmap Generator, PRD Agent, and more. Free tools to supercharge your product development workflow.",
+  title: "AI Tools for Product Teams | 1Labs.ai",
+  description: "Free AI-powered tools to accelerate your product development. Generate roadmaps, PRDs, pitch decks and more in seconds.",
+  icons: {
+    icon: [
+      { url: '/favicon.png', type: 'image/png' },
+    ],
+    apple: '/favicon.png',
+  },
+  openGraph: {
+    title: "AI Tools for Product Teams | 1Labs.ai",
+    description: "Free AI-powered tools to accelerate your product development.",
+    siteName: "1Labs.ai Tools",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Tools for Product Teams | 1Labs.ai",
+    description: "Free AI-powered tools to accelerate your product development.",
+  },
 };
 
 export default function RootLayout({
@@ -19,10 +39,10 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className={`${inter.className} bg-white text-gray-900 min-h-screen flex flex-col`}>
+      <html lang="en" className="scroll-smooth">
+        <body className={`${inter.className} bg-white text-[#131314] min-h-screen flex flex-col antialiased`}>
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 pt-24">{children}</main>
           <Footer />
         </body>
       </html>
