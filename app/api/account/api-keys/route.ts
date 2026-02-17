@@ -25,11 +25,11 @@ export async function GET() {
 
     return NextResponse.json({
       apiKeys: apiKeys.map(key => ({
-        id: key.id,
+        id: key._id,
         name: key.name,
-        keyPrefix: key.key_prefix,
-        createdAt: key.created_at,
-        lastUsedAt: key.last_used_at,
+        keyPrefix: key.keyPrefix,
+        createdAt: key._creationTime ? new Date(key._creationTime).toISOString() : null,
+        lastUsedAt: key.lastUsedAt ? new Date(key.lastUsedAt).toISOString() : null,
       })),
     });
   } catch (error) {
@@ -73,18 +73,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { apiKey, fullKey } = await createApiKey(userId, name);
+    const result = await createApiKey(userId, name);
+
+    if ('error' in result) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: 500 }
+      );
+    }
+
+    const { apiKey, keyData } = result;
 
     return NextResponse.json({
       apiKey: {
-        id: apiKey.id,
-        name: apiKey.name,
-        keyPrefix: apiKey.key_prefix,
-        createdAt: apiKey.created_at,
-        lastUsedAt: apiKey.last_used_at,
+        id: keyData._id,
+        name: keyData.name,
+        keyPrefix: keyData.keyPrefix,
+        createdAt: keyData._creationTime ? new Date(keyData._creationTime).toISOString() : new Date().toISOString(),
+        lastUsedAt: null,
       },
       // Full key is only returned once at creation
-      fullKey,
+      fullKey: apiKey,
     });
   } catch (error) {
     console.error('Error creating API key:', error);
@@ -120,7 +129,14 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await revokeApiKey(userId, keyId);
+    const result = await revokeApiKey(userId, keyId);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error || 'Failed to revoke API key' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

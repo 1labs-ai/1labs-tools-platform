@@ -1,25 +1,25 @@
-import { supabaseAdmin, isSupabaseConfigured } from './supabase';
+import { convex, isConvexConfigured } from "./convex";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 // Tool types
-export type ToolType = 'roadmap' | 'prd' | 'pitch_deck' | 'persona' | 'competitive_analysis';
-export type TransactionType = 'purchase' | 'usage' | 'bonus' | 'refund' | 'signup';
+export type ToolType = "roadmap" | "pitch_deck" | "persona" | "competitive_analysis";
+export type TransactionType = "purchase" | "usage" | "bonus" | "refund" | "signup";
 
-// User profile interface
+// User profile interface (matches Convex schema)
 export interface UserProfile {
-  id: string;
-  clerk_id: string;
-  email: string | null;
-  name: string | null;
+  _id: Id<"userProfiles">;
+  _creationTime: number;
+  clerkId: string;
+  email?: string;
+  name?: string;
   credits: number;
-  plan: 'free' | 'starter' | 'pro' | 'unlimited';
-  created_at: string;
-  updated_at: string;
+  plan: "free" | "starter" | "pro" | "unlimited";
 }
 
 // Credit costs per tool
 export const TOOL_CREDITS: Record<ToolType, number> = {
   roadmap: 5,
-  prd: 10,
   pitch_deck: 15,
   persona: 5,
   competitive_analysis: 10,
@@ -32,86 +32,52 @@ export const INITIAL_CREDITS = 25;
  * Get or create user profile by Clerk ID
  */
 export async function getOrCreateUserProfile(
-  clerkId: string, 
-  email?: string, 
+  clerkId: string,
+  email?: string,
   name?: string
 ): Promise<UserProfile> {
-  // If Supabase is not configured, return mock data
-  if (!isSupabaseConfigured()) {
+  // If Convex is not configured, return mock data
+  if (!isConvexConfigured()) {
     return {
-      id: 'mock-id',
-      clerk_id: clerkId,
-      email: email || null,
-      name: name || null,
+      _id: "mock-id" as Id<"userProfiles">,
+      _creationTime: Date.now(),
+      clerkId,
+      email: email || undefined,
+      name: name || undefined,
       credits: INITIAL_CREDITS,
-      plan: 'free',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      plan: "free",
     };
   }
 
-  // Try to get existing profile
-  const { data: existingProfile } = await supabaseAdmin
-    .from('user_profiles')
-    .select('*')
-    .eq('clerk_id', clerkId)
-    .single();
-
-  if (existingProfile) {
-    return existingProfile as UserProfile;
-  }
-
-  // Create new profile with initial credits
-  const { data: newProfile, error } = await supabaseAdmin
-    .from('user_profiles')
-    .insert({
-      clerk_id: clerkId,
-      email,
-      name,
-      credits: INITIAL_CREDITS,
-      plan: 'free',
-    })
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to create user profile: ${error.message}`);
-  }
-
-  // Record the signup bonus transaction
-  await supabaseAdmin.from('credit_transactions').insert({
-    user_id: (newProfile as UserProfile).id,
-    amount: INITIAL_CREDITS,
-    type: 'signup',
-    description: 'Welcome bonus credits',
+  const profile = await convex.mutation(api.users.getOrCreateByClerkId, {
+    clerkId,
+    email,
+    name,
   });
 
-  return newProfile as UserProfile;
+  return profile as UserProfile;
 }
 
 /**
  * Get user's current credit balance
  */
 export async function getUserCredits(clerkId: string): Promise<number> {
-  if (!isSupabaseConfigured()) {
+  if (!isConvexConfigured()) {
     return INITIAL_CREDITS;
   }
 
-  const { data } = await supabaseAdmin
-    .from('user_profiles')
-    .select('credits')
-    .eq('clerk_id', clerkId)
-    .single();
-
-  return (data as { credits: number } | null)?.credits ?? 0;
+  return await convex.query(api.users.getCredits, { clerkId });
 }
 
 /**
  * Check if user has enough credits for a tool
  */
 export async function hasEnoughCredits(clerkId: string, toolType: ToolType): Promise<boolean> {
-  const credits = await getUserCredits(clerkId);
-  return credits >= TOOL_CREDITS[toolType];
+  if (!isConvexConfigured()) {
+    return true;
+  }
+
+  return await convex.query(api.credits.hasEnough, { clerkId, toolType });
 }
 
 /**
@@ -122,52 +88,15 @@ export async function deductCredits(
   toolType: ToolType,
   generationId?: string
 ): Promise<{ success: boolean; newBalance: number; error?: string }> {
-  if (!isSupabaseConfigured()) {
+  if (!isConvexConfigured()) {
     return { success: true, newBalance: INITIAL_CREDITS - TOOL_CREDITS[toolType] };
   }
 
-  const cost = TOOL_CREDITS[toolType];
-  
-  // Get current profile
-  const { data: profile } = await supabaseAdmin
-    .from('user_profiles')
-    .select('id, credits')
-    .eq('clerk_id', clerkId)
-    .single();
-
-  const typedProfile = profile as { id: string; credits: number } | null;
-
-  if (!typedProfile) {
-    return { success: false, newBalance: 0, error: 'User not found' };
-  }
-
-  if (typedProfile.credits < cost) {
-    return { success: false, newBalance: typedProfile.credits, error: 'Insufficient credits' };
-  }
-
-  const newBalance = typedProfile.credits - cost;
-
-  // Update credits
-  const { error: updateError } = await supabaseAdmin
-    .from('user_profiles')
-    .update({ credits: newBalance, updated_at: new Date().toISOString() })
-    .eq('clerk_id', clerkId);
-
-  if (updateError) {
-    return { success: false, newBalance: typedProfile.credits, error: updateError.message };
-  }
-
-  // Record transaction
-  await supabaseAdmin.from('credit_transactions').insert({
-    user_id: typedProfile.id,
-    amount: -cost,
-    type: 'usage',
-    tool_type: toolType,
-    generation_id: generationId,
-    description: `Used ${toolType} tool`,
+  return await convex.mutation(api.credits.deduct, {
+    clerkId,
+    toolType,
+    generationId: generationId as Id<"generations"> | undefined,
   });
-
-  return { success: true, newBalance };
 }
 
 /**
@@ -179,99 +108,38 @@ export async function addCredits(
   type: TransactionType,
   description?: string
 ): Promise<{ success: boolean; newBalance: number; error?: string }> {
-  if (!isSupabaseConfigured()) {
+  if (!isConvexConfigured()) {
     return { success: true, newBalance: INITIAL_CREDITS + amount };
   }
 
-  const { data: profile } = await supabaseAdmin
-    .from('user_profiles')
-    .select('id, credits')
-    .eq('clerk_id', clerkId)
-    .single();
-
-  const typedProfile = profile as { id: string; credits: number } | null;
-
-  if (!typedProfile) {
-    return { success: false, newBalance: 0, error: 'User not found' };
-  }
-
-  const newBalance = typedProfile.credits + amount;
-
-  const { error: updateError } = await supabaseAdmin
-    .from('user_profiles')
-    .update({ credits: newBalance, updated_at: new Date().toISOString() })
-    .eq('clerk_id', clerkId);
-
-  if (updateError) {
-    return { success: false, newBalance: typedProfile.credits, error: updateError.message };
-  }
-
-  // Record transaction
-  await supabaseAdmin.from('credit_transactions').insert({
-    user_id: typedProfile.id,
+  return await convex.mutation(api.credits.add, {
+    clerkId,
     amount,
     type,
     description,
   });
-
-  return { success: true, newBalance };
 }
 
 /**
  * Get user's transaction history
  */
 export async function getTransactionHistory(clerkId: string, limit = 50) {
-  if (!isSupabaseConfigured()) {
+  if (!isConvexConfigured()) {
     return [];
   }
 
-  const { data: profile } = await supabaseAdmin
-    .from('user_profiles')
-    .select('id')
-    .eq('clerk_id', clerkId)
-    .single();
-
-  if (!profile) return [];
-
-  const { data } = await supabaseAdmin
-    .from('credit_transactions')
-    .select('*')
-    .eq('user_id', (profile as { id: string }).id)
-    .order('created_at', { ascending: false })
-    .limit(limit);
-
-  return data ?? [];
+  return await convex.query(api.credits.getTransactionHistory, { clerkId, limit });
 }
 
 /**
  * Get user's generation history
  */
 export async function getGenerationHistory(clerkId: string, limit = 50, toolType?: ToolType) {
-  if (!isSupabaseConfigured()) {
+  if (!isConvexConfigured()) {
     return [];
   }
 
-  const { data: profile } = await supabaseAdmin
-    .from('user_profiles')
-    .select('id')
-    .eq('clerk_id', clerkId)
-    .single();
-
-  if (!profile) return [];
-
-  let query = supabaseAdmin
-    .from('generations')
-    .select('*')
-    .eq('user_id', (profile as { id: string }).id)
-    .order('created_at', { ascending: false })
-    .limit(limit);
-
-  if (toolType) {
-    query = query.eq('tool_type', toolType);
-  }
-
-  const { data } = await query;
-  return data ?? [];
+  return await convex.query(api.generations.list, { clerkId, toolType, limit });
 }
 
 /**
@@ -284,37 +152,18 @@ export async function saveGeneration(
   input: Record<string, unknown>,
   output: Record<string, unknown>,
   creditsUsed: number
-) {
-  if (!isSupabaseConfigured()) {
-    return { id: 'mock-generation-id' };
+): Promise<{ id: string }> {
+  if (!isConvexConfigured()) {
+    return { id: "mock-generation-id" };
   }
 
-  const { data: profile } = await supabaseAdmin
-    .from('user_profiles')
-    .select('id')
-    .eq('clerk_id', clerkId)
-    .single();
-
-  if (!profile) {
-    throw new Error('User not found');
-  }
-
-  const { data, error } = await supabaseAdmin
-    .from('generations')
-    .insert({
-      user_id: (profile as { id: string }).id,
-      tool_type: toolType,
-      title,
-      input,
-      output,
-      credits_used: creditsUsed,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to save generation: ${error.message}`);
-  }
-
-  return data;
+  const result = await convex.mutation(api.generations.save, {
+    clerkId,
+    toolType,
+    title: title || undefined,
+    input,
+    output,
+    creditsUsed,
+  });
+  return { id: result.id.toString() };
 }

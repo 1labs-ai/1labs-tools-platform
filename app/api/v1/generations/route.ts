@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       clerkId,
       limit,
       toolType || undefined
-    );
+    ) as unknown[];
 
     return NextResponse.json({
       success: true,

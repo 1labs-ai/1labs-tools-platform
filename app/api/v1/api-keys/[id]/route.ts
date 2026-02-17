@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { revokeApiKey } from "@/lib/api-auth";
+import { revokeApiKey } from "@/lib/api-keys";
 
 // Revoke an API key
 export async function DELETE(

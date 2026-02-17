@@ -1,16 +1,18 @@
-import * as crypto from 'crypto';
-import { supabaseAdmin, isSupabaseConfigured } from './supabase';
+import * as crypto from "crypto";
+import { convex, isConvexConfigured } from "./convex";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 // API Key Types
 export interface ApiKey {
-  id: string;
-  user_id: string;
+  _id: Id<"apiKeys">;
+  _creationTime: number;
+  userId: Id<"userProfiles">;
   name: string;
-  key_prefix: string;
-  key_hash: string;
-  created_at: string;
-  last_used_at: string | null;
-  revoked_at: string | null;
+  keyPrefix: string;
+  keyHash: string;
+  lastUsedAt?: number;
+  revokedAt?: number;
 }
 
 export interface ApiKeyCreateResult {
@@ -19,22 +21,20 @@ export interface ApiKeyCreateResult {
 }
 
 /**
- * Generate a new API key with the 1lab_sk_ prefix
- * Format: 1lab_sk_<32 random characters>
+ * Generate a new API key with the 1labs_ prefix
+ * Format: 1labs_<64 hex characters>
  */
 export function generateApiKey(): string {
-  const randomBytes = crypto.randomBytes(24);
-  const randomString = randomBytes.toString('base64url');
-  return `1lab_sk_${randomString}`;
+  const randomBytes = crypto.randomBytes(32);
+  return `1labs_${randomBytes.toString("hex")}`;
 }
 
 /**
- * Extract the prefix from an API key (first 12 chars after the prefix)
- * e.g., "1lab_sk_abc123..." returns "1lab_sk_abc1..."
+ * Extract the prefix from an API key (first 12 chars)
+ * e.g., "1labs_abc123..." returns "1labs_abc1..."
  */
 export function extractKeyPrefix(fullKey: string): string {
-  // Take the prefix + first 8 chars of the random part
-  const prefix = fullKey.substring(0, 16);
+  const prefix = fullKey.substring(0, 12);
   return `${prefix}...`;
 }
 
@@ -42,113 +42,103 @@ export function extractKeyPrefix(fullKey: string): string {
  * Hash an API key using SHA-256 for secure storage
  */
 export function hashApiKey(apiKey: string): string {
-  return crypto.createHash('sha256').update(apiKey).digest('hex');
+  return crypto.createHash("sha256").update(apiKey).digest("hex");
 }
 
 /**
  * Validate an API key format (does not check database)
  */
 export function isValidApiKeyFormat(apiKey: string): boolean {
-  // Must start with 1lab_sk_ and have at least 32 chars total
-  return /^1lab_sk_[A-Za-z0-9_-]{24,}$/.test(apiKey);
+  // Must start with 1labs_ and have at least 32 chars total
+  return /^1labs_[a-f0-9]{64}$/.test(apiKey);
 }
 
 /**
  * Create a new API key for a user
  */
 export async function createApiKey(
-  userId: string, 
+  clerkId: string,
   name: string
-): Promise<ApiKeyCreateResult> {
-  if (!isSupabaseConfigured()) {
-    throw new Error('Database not configured');
+): Promise<{ apiKey: string; keyData: Partial<ApiKey> } | { error: string }> {
+  if (!isConvexConfigured()) {
+    const fullKey = generateApiKey();
+    const keyPrefix = extractKeyPrefix(fullKey);
+    return {
+      apiKey: fullKey,
+      keyData: {
+        _id: "mock-key-id" as Id<"apiKeys">,
+        _creationTime: Date.now(),
+        name,
+        keyPrefix,
+      },
+    };
   }
 
-  const fullKey = generateApiKey();
-  const keyHash = hashApiKey(fullKey);
-  const keyPrefix = extractKeyPrefix(fullKey);
+  try {
+    const fullKey = generateApiKey();
+    const keyPrefix = extractKeyPrefix(fullKey);
+    const keyHash = hashApiKey(fullKey);
 
-  const { data, error } = await supabaseAdmin
-    .from('api_keys')
-    .insert({
-      user_id: userId,
-      name: name.trim(),
-      key_prefix: keyPrefix,
-      key_hash: keyHash,
-    })
-    .select()
-    .single();
+    const keyRecord = await convex.mutation(api.apiKeys.create, {
+      clerkId,
+      name,
+      keyPrefix,
+      keyHash,
+    });
 
-  if (error) {
-    console.error('Error creating API key:', error);
-    throw new Error('Failed to create API key');
+    return {
+      apiKey: fullKey,
+      keyData: keyRecord as Partial<ApiKey>,
+    };
+  } catch (error) {
+    return { error: `Failed to create API key: ${(error as Error).message}` };
   }
-
-  return {
-    apiKey: data as ApiKey,
-    fullKey, // Return full key only once
-  };
 }
 
 /**
  * List all API keys for a user (without the full key)
  */
-export async function listApiKeys(userId: string): Promise<ApiKey[]> {
-  if (!isSupabaseConfigured()) {
-    throw new Error('Database not configured');
+export async function listApiKeys(clerkId: string): Promise<Partial<ApiKey>[]> {
+  if (!isConvexConfigured()) {
+    return [];
   }
 
-  const { data, error } = await supabaseAdmin
-    .from('api_keys')
-    .select('*')
-    .eq('user_id', userId)
-    .is('revoked_at', null)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error listing API keys:', error);
-    throw new Error('Failed to list API keys');
-  }
-
-  return data as ApiKey[];
+  return await convex.query(api.apiKeys.list, { clerkId });
 }
 
 /**
- * Revoke (soft delete) an API key
+ * Revoke an API key
  */
 export async function revokeApiKey(
-  userId: string, 
+  clerkId: string,
   keyId: string
-): Promise<boolean> {
-  if (!isSupabaseConfigured()) {
-    throw new Error('Database not configured');
+): Promise<{ success: boolean; error?: string }> {
+  if (!isConvexConfigured()) {
+    return { success: true };
   }
 
-  const { error } = await supabaseAdmin
-    .from('api_keys')
-    .update({ revoked_at: new Date().toISOString() })
-    .eq('id', keyId)
-    .eq('user_id', userId);
-
-  if (error) {
-    console.error('Error revoking API key:', error);
-    throw new Error('Failed to revoke API key');
+  try {
+    await convex.mutation(api.apiKeys.revoke, {
+      clerkId,
+      keyId: keyId as Id<"apiKeys">,
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
   }
-
-  return true;
 }
 
 /**
- * Validate an API key and return the associated user info
- * Updates last_used_at timestamp
+ * Validate an API key and return user info
  */
 export async function validateApiKey(apiKey: string): Promise<{
   valid: boolean;
   userId?: string;
+  clerkId?: string;
   keyId?: string;
   keyName?: string;
 }> {
-  if (!isSupabaseConfigured()) {
+  if (!isConvexConfigured()) {
     return { valid: false };
   }
 
@@ -158,52 +148,42 @@ export async function validateApiKey(apiKey: string): Promise<{
 
   const keyHash = hashApiKey(apiKey);
 
-  const { data, error } = await supabaseAdmin
-    .from('api_keys')
-    .select('id, user_id, name')
-    .eq('key_hash', keyHash)
-    .is('revoked_at', null)
-    .single();
+  const result = await convex.query(api.apiKeys.validateByHash, { keyHash });
 
-  if (error || !data) {
+  if (!result.valid) {
     return { valid: false };
   }
 
-  // Update last_used_at
-  await supabaseAdmin
-    .from('api_keys')
-    .update({ last_used_at: new Date().toISOString() })
-    .eq('id', data.id);
+  // Update last_used_at (fire and forget)
+  if (result.keyId) {
+    convex.mutation(api.apiKeys.updateLastUsed, { keyId: result.keyId }).catch(() => {
+      // Ignore errors from updating last used
+    });
+  }
 
   return {
     valid: true,
-    userId: data.user_id,
-    keyId: data.id,
-    keyName: data.name,
+    userId: result.userId?.toString(),
+    clerkId: result.clerkId,
+    keyId: result.keyId?.toString(),
+    keyName: result.keyName,
   };
 }
 
 /**
  * Get API key by ID (for the owner only)
+ * Note: In Convex, we'd need to add this query if needed.
+ * For now, use list and filter.
  */
 export async function getApiKeyById(
-  userId: string, 
+  clerkId: string,
   keyId: string
 ): Promise<ApiKey | null> {
-  if (!isSupabaseConfigured()) {
+  if (!isConvexConfigured()) {
     return null;
   }
 
-  const { data, error } = await supabaseAdmin
-    .from('api_keys')
-    .select('*')
-    .eq('id', keyId)
-    .eq('user_id', userId)
-    .single();
-
-  if (error || !data) {
-    return null;
-  }
-
-  return data as ApiKey;
+  const keys = await listApiKeys(clerkId);
+  const key = keys.find((k) => k._id?.toString() === keyId);
+  return (key as ApiKey) || null;
 }

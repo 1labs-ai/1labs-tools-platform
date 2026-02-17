@@ -1,13 +1,14 @@
-import { auth, currentUser } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
-import { isConvexConfigured, INITIAL_CREDITS } from '@/lib/convex';
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { isConvexConfigured } from "@/lib/convex";
+import { INITIAL_CREDITS } from "@/lib/credits";
 
 export async function GET() {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await currentUser();
@@ -17,11 +18,13 @@ export async function GET() {
     if (!isConvexConfigured()) {
       return NextResponse.json({
         profile: {
-          id: 'mock-id',
+          id: "mock-id",
           credits: INITIAL_CREDITS,
-          plan: 'free',
+          plan: "free",
           email: user?.emailAddresses?.[0]?.emailAddress || null,
-          name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : null,
+          name: user?.firstName
+            ? `${user.firstName} ${user.lastName || ""}`.trim()
+            : null,
           createdAt: new Date().toISOString(),
         },
         recentTransactions: [],
@@ -35,18 +38,20 @@ export async function GET() {
       profile: {
         id: userId,
         credits: INITIAL_CREDITS,
-        plan: 'free',
+        plan: "free",
         email: user?.emailAddresses?.[0]?.emailAddress || null,
-        name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : null,
+        name: user?.firstName
+          ? `${user.firstName} ${user.lastName || ""}`.trim()
+          : null,
         createdAt: new Date().toISOString(),
       },
       recentTransactions: [],
       recentGenerations: [],
     });
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    console.error("Error fetching user data:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch user data' },
+      { error: "Failed to fetch user data" },
       { status: 500 }
     );
   }

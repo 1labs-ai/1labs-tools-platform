@@ -78,8 +78,8 @@ export function Header() {
             <Link href="/roadmap" className="text-[15px] text-gray-600 hover:text-gray-900 transition-colors">
               Roadmap
             </Link>
-            <Link href="/prd" className="text-[15px] text-gray-600 hover:text-gray-900 transition-colors">
-              PRD Agent
+            <Link href="/pitch-deck" className="text-[15px] text-gray-600 hover:text-gray-900 transition-colors">
+              Pitch Deck
             </Link>
             <Link href="/pricing" className="text-[15px] text-gray-600 hover:text-gray-900 transition-colors">
               Pricing

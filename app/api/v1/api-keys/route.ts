@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { createApiKey, listApiKeys } from "@/lib/api-auth";
+import { createApiKey, listApiKeys } from "@/lib/api-keys";
 
 // Create a new API key (requires Clerk auth, not API key auth)
 export async function POST(request: NextRequest) {
@@ -39,10 +39,10 @@ export async function POST(request: NextRequest) {
       data: {
         api_key: result.apiKey, // Only shown once!
         key_info: {
-          id: result.keyData.id,
+          id: result.keyData._id,
           name: result.keyData.name,
-          prefix: result.keyData.key_prefix,
-          created_at: result.keyData.created_at,
+          prefix: result.keyData.keyPrefix,
+          created_at: result.keyData._creationTime,
         },
       },
       message: "Save this API key - it won't be shown again!",
@@ -74,11 +74,11 @@ export async function GET() {
       success: true,
       data: {
         api_keys: keys.map((k) => ({
-          id: k.id,
+          id: k._id,
           name: k.name,
-          prefix: k.key_prefix,
-          last_used_at: k.last_used_at,
-          created_at: k.created_at,
+          prefix: k.keyPrefix,
+          last_used_at: k.lastUsedAt,
+          created_at: k._creationTime,
         })),
       },
     });
