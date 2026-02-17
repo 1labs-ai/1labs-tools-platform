@@ -7,11 +7,18 @@ export function Header() {
   const { isSignedIn, isLoaded } = useUser();
 
   return (
-    <header className="border-b border-gray-100 bg-white sticky top-0 z-50">
+    <header 
+      className="sticky top-0 z-50 border-b border-white/20"
+      style={{ 
+        background: 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)'
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo — 1∞ Damru Mark + Wordmark */}
-          <Link href="/" className="flex items-center gap-2.5">
+          {/* Logo — 1∞ Damru Mark + Wordmark + Tools Badge */}
+          <Link href="/" className="flex items-center gap-3">
             {/* Damru Icon with Purple→Pink Gradient */}
             <svg width="36" height="36" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
               <defs>
@@ -31,12 +38,18 @@ export function Header() {
                 <rect x="26" y="0" width="8" height="54" rx="4" fill="url(#logoGrad)"/>
               </g>
             </svg>
-            {/* Wordmark */}
-            <span className="flex items-baseline text-[19px] font-semibold tracking-tight">
-              <span className="font-bold" style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>1</span>
-              <span className="text-[#090221] font-semibold">Labs</span>
-              <span className="font-semibold" style={{ color: '#EC4899' }}>.ai</span>
-            </span>
+            {/* Wordmark + Badge */}
+            <div className="flex items-center gap-2">
+              <span className="flex items-baseline text-[19px] font-semibold tracking-tight">
+                <span className="font-bold" style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>1</span>
+                <span className="text-[#090221] font-semibold">Labs</span>
+                <span className="font-semibold" style={{ color: '#EC4899' }}>.ai</span>
+              </span>
+              {/* Tools Badge */}
+              <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                Tools
+              </span>
+            </div>
           </Link>
 
           {/* Navigation */}
