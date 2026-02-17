@@ -4,7 +4,11 @@ import Link from "next/link";
 import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
 
 export function Header() {
-  const { isSignedIn, isLoaded } = useUser();
+  const { isSignedIn, isLoaded, user } = useUser();
+  
+  // TODO: Fetch actual credits from database
+  // For now using publicMetadata or default value
+  const credits = (user?.publicMetadata?.credits as number) ?? 25;
 
   return (
     <header 
@@ -71,6 +75,15 @@ export function Header() {
               <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
             ) : isSignedIn ? (
               <>
+                {/* Credits Display */}
+                <div className="flex items-center gap-1.5 bg-purple-50 px-3 py-1.5 rounded-full">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="#7C3AED" strokeWidth="2"/>
+                    <path d="M12 6v12M8 10l4-4 4 4M8 14l4 4 4-4" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span className="text-[13px] font-semibold text-purple-700">{credits}</span>
+                  <span className="text-[11px] text-purple-500">credits</span>
+                </div>
                 <Link 
                   href="/account" 
                   className="text-[14px] text-gray-600 hover:text-gray-900 transition-colors"
