@@ -1,7 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-const INITIAL_CREDITS = 25;
+const INITIAL_CREDITS = 50; // Free plan gets 50 credits
 
 /**
  * Get or create user profile by Clerk ID
