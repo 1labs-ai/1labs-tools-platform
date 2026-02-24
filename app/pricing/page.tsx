@@ -1,71 +1,72 @@
 import Link from "next/link";
 
+// Plans synced with lib/billing.ts
 const plans = [
   {
     name: "Free",
     price: "$0",
-    period: "forever",
+    period: "/month",
     description: "Perfect for trying out our tools",
-    credits: "25 credits one-time",
+    credits: "50 credits/month",
     features: [
       "Access to all tools",
-      "25 free credits to start",
-      "Basic support",
+      "50 credits per month",
+      "Community support",
     ],
     cta: "Get Started",
     href: "/sign-up",
     highlighted: false,
   },
   {
-    name: "Starter",
-    price: "$9",
-    period: "/month",
-    description: "For individuals and small projects",
-    credits: "100 credits/month",
-    features: [
-      "Access to all tools",
-      "100 credits per month",
-      "Credits roll over (up to 200)",
-      "Email support",
-    ],
-    cta: "Start Free Trial",
-    href: "/sign-up?plan=starter",
-    highlighted: false,
-  },
-  {
     name: "Pro",
     price: "$29",
     period: "/month",
-    description: "For power users and teams",
+    description: "For power users",
     credits: "500 credits/month",
     features: [
       "Access to all tools",
       "500 credits per month",
       "Credits roll over (up to 1000)",
       "Priority support",
-      "Early access to new tools",
-      "API access (coming soon)",
+      "Early access to new features",
     ],
     cta: "Start Free Trial",
     href: "/sign-up?plan=pro",
     highlighted: true,
   },
   {
-    name: "Unlimited",
-    price: "$79",
+    name: "Team",
+    price: "$99",
     period: "/month",
-    description: "For heavy users and agencies",
-    credits: "Unlimited",
+    description: "For teams and agencies",
+    credits: "2,500 credits/month",
     features: [
       "Access to all tools",
-      "Unlimited generations",
+      "2,500 credits per month",
+      "Credits roll over (up to 5000)",
       "Priority support",
-      "Early access to new tools",
-      "API access (coming soon)",
+      "Team collaboration (coming soon)",
       "Custom integrations",
     ],
     cta: "Start Free Trial",
-    href: "/sign-up?plan=unlimited",
+    href: "/sign-up?plan=team",
+    highlighted: false,
+  },
+  {
+    name: "Unlimited",
+    price: "$299",
+    period: "/month",
+    description: "Unlimited access for enterprises",
+    credits: "Unlimited",
+    features: [
+      "Unlimited credits",
+      "Access to all tools",
+      "Dedicated support",
+      "API access",
+      "SLA guarantee",
+    ],
+    cta: "Contact Sales",
+    href: "/contact",
     highlighted: false,
   },
 ];
@@ -87,7 +88,7 @@ export default function PricingPage() {
             Simple, Credit-Based Pricing
           </h1>
           <p className="text-[#58585a] max-w-2xl mx-auto text-[15px]">
-            Start free with 25 credits. Upgrade when you need more. 
+            Start free with 50 credits/month. Upgrade when you need more. 
             No hidden fees, no surprises.
           </p>
         </div>
@@ -153,8 +154,18 @@ export default function PricingPage() {
         {/* Credit Usage Table */}
         <div className="max-w-2xl mx-auto">
           <h2 className="text-xl font-bold mb-6 text-center text-[#131314]">Credit Usage</h2>
-          <div className="bg-white border border-gray-200 rounded-[24px] overflow-hidden shadow-sm">
-            <table className="w-full">
+          <div className="bg-white border border-gray-200 rounded-[20px] sm:rounded-[24px] overflow-hidden shadow-sm">
+            {/* Mobile view */}
+            <div className="sm:hidden divide-y divide-gray-200">
+              {creditUsage.map((item) => (
+                <div key={item.tool} className="flex items-center justify-between p-4">
+                  <span className="text-[14px] text-[#131314]">{item.tool}</span>
+                  <span className="text-[14px] font-medium" style={{ color: '#EC4899' }}>{item.credits} credits</span>
+                </div>
+              ))}
+            </div>
+            {/* Desktop table */}
+            <table className="w-full hidden sm:table">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left py-3 px-4 text-[13px] font-medium text-[#58585a]">Tool</th>
