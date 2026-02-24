@@ -9,6 +9,10 @@ const TOOL_CREDITS: Record<string, number> = {
   pitch_deck: 15,
   persona: 5,
   competitive_analysis: 10,
+  user_stories: 5,
+  release_notes: 5,
+  meeting_notes: 5,
+  faq_generator: 5,
 };
 
 /**
@@ -115,6 +119,60 @@ export const add = mutation({
       amount: args.amount,
       type: args.type,
       description: args.description,
+    });
+
+    return { success: true, newBalance };
+  },
+});
+
+// Agent types and costs
+const AGENT_CREDITS: Record<string, number> = {
+  prd_agent: 50,
+  roadmap_agent: 50,
+  research_agent: 100,
+  competitor_agent: 100,
+  pitch_agent: 200,
+  tech_spec_agent: 200,
+  full_product_agent: 500,
+  gtm_agent: 500,
+};
+
+/**
+ * Deduct credits for using an agent (with transaction logging)
+ */
+export const deductAgent = mutation({
+  args: {
+    clerkId: v.string(),
+    agentType: v.string(),
+    sessionId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .unique();
+
+    if (!user) {
+      return { success: false, newBalance: 0, error: "User not found" };
+    }
+
+    const cost = AGENT_CREDITS[args.agentType] ?? 100;
+
+    if (user.credits < cost) {
+      return { success: false, newBalance: user.credits, error: "Insufficient credits" };
+    }
+
+    const newBalance = user.credits - cost;
+
+    // Update user credits
+    await ctx.db.patch(user._id, { credits: newBalance });
+
+    // Record transaction
+    await ctx.db.insert("creditTransactions", {
+      userId: user._id,
+      amount: -cost,
+      type: "usage",
+      description: `Used ${args.agentType} agent${args.sessionId ? ` (session: ${args.sessionId})` : ''}`,
     });
 
     return { success: true, newBalance };

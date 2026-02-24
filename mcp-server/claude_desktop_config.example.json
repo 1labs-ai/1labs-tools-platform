@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "1labs-tools": {
+      "command": "npx",
+      "args": ["-y", "@1labs/mcp-tools"],
+      "env": {
+        "ONELABS_API_KEY": "your-tools-api-key-here"
+      }
+    }
+  }
+}

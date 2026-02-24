@@ -1,11 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { deductCredits, hasEnoughCredits, saveGeneration, TOOL_CREDITS } from "@/lib/credits";
+import { deductCredits, getUserCredits, hasEnoughCredits, saveGeneration, TOOL_CREDITS } from "@/lib/credits";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const TOOL_TYPE = "persona" as const;
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,10 +21,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has enough credits
-    const hasCredits = await hasEnoughCredits(userId, "persona");
+    const hasCredits = await hasEnoughCredits(userId, TOOL_TYPE);
     if (!hasCredits) {
+      const currentCredits = await getUserCredits(userId);
       return NextResponse.json(
-        { error: `Insufficient credits. You need ${TOOL_CREDITS.persona} credits to generate a persona.` },
+        { 
+          error: "Insufficient credits",
+          credits_required: TOOL_CREDITS[TOOL_TYPE],
+          credits_remaining: currentCredits,
+        },
         { status: 402 }
       );
     }
@@ -90,29 +97,27 @@ Make the persona specific, realistic, and useful for product development. Avoid 
 
     const persona = JSON.parse(content);
 
-    // Deduct credits
-    const deductResult = await deductCredits(userId, "persona");
-    if (!deductResult.success) {
-      return NextResponse.json(
-        { error: deductResult.error || "Failed to deduct credits" },
-        { status: 402 }
-      );
-    }
-
     // Save the generation
-    await saveGeneration(
+    const generation = await saveGeneration(
       userId,
-      "persona",
+      TOOL_TYPE,
       `${persona.name} - ${persona.demographics.jobTitle}`,
       { productDescription, targetIndustry, userRole, painPoints, goals },
       persona,
-      TOOL_CREDITS.persona
+      TOOL_CREDITS[TOOL_TYPE]
     );
+
+    // Deduct credits
+    const deductResult = await deductCredits(userId, TOOL_TYPE, generation.id);
+    if (!deductResult.success) {
+      console.error("Failed to deduct credits:", deductResult.error);
+    }
 
     return NextResponse.json({ 
       persona,
-      creditsUsed: TOOL_CREDITS.persona,
-      creditsRemaining: deductResult.newBalance
+      credits_used: TOOL_CREDITS[TOOL_TYPE],
+      credits_remaining: deductResult.newBalance,
+      generation_id: generation.id,
     });
   } catch (error) {
     console.error("Persona generation error:", error);

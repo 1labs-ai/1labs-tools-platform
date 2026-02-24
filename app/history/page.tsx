@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
+import { useUser, RedirectToSignIn } from "@clerk/nextjs";
 import Link from "next/link";
 
 interface Generation {
@@ -20,7 +19,11 @@ const toolInfo: Record<string, { name: string; icon: string }> = {
   prd: { name: "PRD Agent", icon: "📝" },
   pitch_deck: { name: "Pitch Deck", icon: "🎯" },
   persona: { name: "User Persona", icon: "👤" },
-  competitive_analysis: { name: "Competitive Analysis", icon: "🔍" },
+  competitive_analysis: { name: "Competitive Analysis", icon: "⚔️" },
+  user_stories: { name: "User Stories", icon: "📝" },
+  release_notes: { name: "Release Notes", icon: "🚀" },
+  meeting_notes: { name: "Meeting Notes", icon: "📋" },
+  faq_generator: { name: "FAQ Generator", icon: "❓" },
 };
 
 export default function HistoryPage() {
@@ -30,14 +33,10 @@ export default function HistoryPage() {
   const [filter, setFilter] = useState<string>("all");
 
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      redirect("/sign-in");
-    }
-
     if (isSignedIn) {
       fetchHistory();
     }
-  }, [isLoaded, isSignedIn]);
+  }, [isSignedIn]);
 
   const fetchHistory = async () => {
     try {
@@ -57,7 +56,7 @@ export default function HistoryPage() {
     ? generations 
     : generations.filter(g => g.tool_type === filter);
 
-  if (!isLoaded || loading) {
+  if (!isLoaded) {
     return (
       <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center">
         <div className="text-gray-500">Loading...</div>
@@ -66,23 +65,31 @@ export default function HistoryPage() {
   }
 
   if (!isSignedIn) {
-    return null;
+    return <RedirectToSignIn />;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center">
+        <div className="text-gray-500">Loading history...</div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-[calc(100vh-8rem)] py-12 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-[#131314]">Generation History</h1>
-            <p className="text-[#58585a] text-[15px]">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#131314]">Generation History</h1>
+            <p className="text-[#58585a] text-[14px] sm:text-[15px]">
               View and manage all your AI generations
             </p>
           </div>
           <Link 
             href="/dashboard" 
-            className="text-[14px] text-gray-500 hover:text-gray-700"
+            className="text-[14px] text-gray-500 hover:text-gray-700 self-start sm:self-auto"
           >
             ← Back to Dashboard
           </Link>
@@ -155,12 +162,14 @@ export default function HistoryPage() {
                   </div>
 
                   {/* Preview of input */}
-                  <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                    <div className="text-[12px] text-gray-500 mb-2">Input</div>
-                    <div className="text-[14px] text-[#131314] line-clamp-2">
-                      {JSON.stringify(gen.input).slice(0, 200)}...
+                  {gen.input && Object.keys(gen.input).length > 0 && (
+                    <div className="bg-gray-50 rounded-xl p-4 mb-4">
+                      <div className="text-[12px] text-gray-500 mb-2">Input</div>
+                      <div className="text-[14px] text-[#131314] line-clamp-2">
+                        {JSON.stringify(gen.input).slice(0, 200)}{JSON.stringify(gen.input).length > 200 ? '...' : ''}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Actions */}
                   <div className="flex gap-3">

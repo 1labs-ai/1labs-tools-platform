@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { stripe, getCreditPackage, isStripeConfigured } from '@/lib/stripe';
+import { auth, currentUser } from '@clerk/nextjs/server';
+import { 
+  createCreditCheckoutSession, 
+  createSubscriptionCheckoutSession,
+  isStripeConfigured 
+} from '@/lib/stripe';
+import { getCreditPackage, getSubscriptionPlan } from '@/lib/billing';
 
 export async function POST(request: Request) {
   try {
@@ -13,24 +18,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const { packageId } = await request.json();
-    
-    if (!packageId) {
-      return NextResponse.json(
-        { error: 'Package ID is required' },
-        { status: 400 }
-      );
-    }
-
-    const creditPackage = getCreditPackage(packageId);
-    
-    if (!creditPackage) {
-      return NextResponse.json(
-        { error: 'Invalid package' },
-        { status: 400 }
-      );
-    }
-
     // Check if Stripe is configured
     if (!isStripeConfigured()) {
       return NextResponse.json(
@@ -39,71 +26,89 @@ export async function POST(request: Request) {
       );
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const body = await request.json();
+    const { packageId, planId } = body;
 
-    // Create checkout session based on package type
-    if (creditPackage.type === 'subscription') {
-      // Create subscription checkout
-      const session = await stripe.checkout.sessions.create({
-        mode: 'subscription',
-        payment_method_types: ['card'],
-        customer_email: undefined, // Will be collected by Stripe
-        metadata: {
-          userId,
-          packageId,
-          type: 'subscription',
-        },
-        line_items: [
-          {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: creditPackage.name,
-                description: creditPackage.description,
-              },
-              unit_amount: creditPackage.price,
-              recurring: {
-                interval: 'month',
-              },
-            },
-            quantity: 1,
-          },
-        ],
-        success_url: `${baseUrl}/buy-credits?success=true&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${baseUrl}/buy-credits?canceled=true`,
-      });
-
-      return NextResponse.json({ url: session.url });
-    } else {
-      // Create one-time payment checkout
-      const session = await stripe.checkout.sessions.create({
-        mode: 'payment',
-        payment_method_types: ['card'],
-        metadata: {
-          userId,
-          packageId,
-          credits: creditPackage.credits.toString(),
-          type: 'one_time',
-        },
-        line_items: [
-          {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: creditPackage.name,
-                description: creditPackage.description,
-              },
-              unit_amount: creditPackage.price,
-            },
-            quantity: 1,
-          },
-        ],
-        success_url: `${baseUrl}/buy-credits?success=true&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${baseUrl}/buy-credits?canceled=true`,
-      });
-
-      return NextResponse.json({ url: session.url });
+    // Validate input - either packageId OR planId, not both
+    if (!packageId && !planId) {
+      return NextResponse.json(
+        { error: 'Either packageId or planId is required' },
+        { status: 400 }
+      );
     }
+
+    if (packageId && planId) {
+      return NextResponse.json(
+        { error: 'Provide either packageId or planId, not both' },
+        { status: 400 }
+      );
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const returnUrl = `${baseUrl}/buy-credits`;
+
+    // Handle credit package purchase
+    if (packageId) {
+      const creditPackage = getCreditPackage(packageId);
+      
+      if (!creditPackage) {
+        return NextResponse.json(
+          { error: 'Invalid package' },
+          { status: 400 }
+        );
+      }
+
+      const result = await createCreditCheckoutSession(userId, packageId, returnUrl);
+      
+      if (result.error) {
+        return NextResponse.json(
+          { error: result.error },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ url: result.url });
+    }
+
+    // Handle subscription checkout
+    if (planId) {
+      const plan = getSubscriptionPlan(planId);
+      
+      if (!plan) {
+        return NextResponse.json(
+          { error: 'Invalid plan' },
+          { status: 400 }
+        );
+      }
+
+      if (planId === 'free') {
+        return NextResponse.json(
+          { error: 'Free plan does not require payment' },
+          { status: 400 }
+        );
+      }
+
+      // Get user email for Stripe
+      const user = await currentUser();
+      const customerEmail = user?.emailAddresses?.[0]?.emailAddress;
+
+      const result = await createSubscriptionCheckoutSession(
+        userId, 
+        planId, 
+        customerEmail,
+        returnUrl
+      );
+      
+      if (result.error) {
+        return NextResponse.json(
+          { error: result.error },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ url: result.url });
+    }
+
   } catch (error) {
     console.error('Stripe checkout error:', error);
     return NextResponse.json(

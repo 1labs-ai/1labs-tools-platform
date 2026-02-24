@@ -249,7 +249,7 @@ export default function PitchDeckPage() {
                 </SignInButton>
               )}
               <p className="text-center text-[13px] mt-3" style={{ color: '#EC4899' }}>
-                Sign up free to get 25 credits
+                Sign up free · 50 credits/month
               </p>
             </div>
           </div>

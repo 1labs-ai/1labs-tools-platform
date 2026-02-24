@@ -12,8 +12,11 @@ export default defineSchema({
       v.literal("free"),
       v.literal("starter"),
       v.literal("pro"),
+      v.literal("team"),
       v.literal("unlimited")
     ),
+    stripeCustomerId: v.optional(v.string()),
+    stripeSubscriptionId: v.optional(v.string()),
   }).index("by_clerk_id", ["clerkId"]),
 
   // Credit transactions for history
@@ -40,7 +43,13 @@ export default defineSchema({
       v.literal("prd"),
       v.literal("pitch_deck"),
       v.literal("persona"),
-      v.literal("competitive_analysis")
+      v.literal("competitive_analysis"),
+      v.literal("user_stories"),
+      v.literal("meeting_notes"),
+      v.literal("release_notes"),
+      v.literal("faq_generator"),
+      v.literal("tech_spec"),
+      v.literal("gtm")
     ),
     title: v.optional(v.string()),
     input: v.any(),

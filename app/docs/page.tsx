@@ -167,6 +167,7 @@ export default function DocsPage() {
     { id: "endpoints", label: "Endpoints" },
     { id: "rate-limits", label: "Rate Limits" },
     { id: "errors", label: "Error Codes" },
+    { id: "mcp", label: "MCP Integration", href: "/docs/mcp" },
   ];
 
   const endpoints = [
@@ -543,6 +544,14 @@ data.data.generations.forEach(gen => {
               <ul className="space-y-1">
                 {sections.map((section) => (
                   <li key={section.id}>
+                    {section.href ? (
+                      <Link
+                        href={section.href}
+                        className="block px-4 py-2 rounded-xl text-[14px] transition-colors text-purple-600 hover:bg-purple-50 font-medium flex items-center gap-2"
+                      >
+                        🔌 {section.label}
+                      </Link>
+                    ) : (
                     <a
                       href={`#${section.id}`}
                       onClick={() => setActiveSection(section.id)}
@@ -554,6 +563,7 @@ data.data.generations.forEach(gen => {
                     >
                       {section.label}
                     </a>
+                    )}
                   </li>
                 ))}
               </ul>

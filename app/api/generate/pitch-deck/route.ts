@@ -1,11 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { deductCredits, hasEnoughCredits, saveGeneration, TOOL_CREDITS } from "@/lib/credits";
+import { deductCredits, getUserCredits, hasEnoughCredits, saveGeneration, TOOL_CREDITS } from "@/lib/credits";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const TOOL_TYPE = "pitch_deck" as const;
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,10 +21,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Check credits before generating
-    const hasCredits = await hasEnoughCredits(userId, "pitch_deck");
+    const hasCredits = await hasEnoughCredits(userId, TOOL_TYPE);
     if (!hasCredits) {
+      const currentCredits = await getUserCredits(userId);
       return NextResponse.json(
-        { error: `Insufficient credits. This tool requires ${TOOL_CREDITS.pitch_deck} credits.` },
+        { 
+          error: "Insufficient credits",
+          credits_required: TOOL_CREDITS[TOOL_TYPE],
+          credits_remaining: currentCredits,
+        },
         { status: 402 }
       );
     }
@@ -88,28 +95,27 @@ Make the content punchy, investor-ready, and compelling. Use specific numbers wh
 
     const pitchDeck = JSON.parse(content);
 
-    // Deduct credits after successful generation
-    const creditResult = await deductCredits(userId, "pitch_deck");
-    if (!creditResult.success) {
-      return NextResponse.json(
-        { error: creditResult.error || "Failed to deduct credits" },
-        { status: 500 }
-      );
-    }
-
     // Save generation to history
-    await saveGeneration(
+    const generation = await saveGeneration(
       userId,
-      "pitch_deck",
+      TOOL_TYPE,
       companyName,
       { companyName, problem, solution, targetMarket, businessModel, traction, team, askAmount },
       pitchDeck,
-      TOOL_CREDITS.pitch_deck
+      TOOL_CREDITS[TOOL_TYPE]
     );
+
+    // Deduct credits after successful generation
+    const creditResult = await deductCredits(userId, TOOL_TYPE, generation.id);
+    if (!creditResult.success) {
+      console.error("Failed to deduct credits:", creditResult.error);
+    }
 
     return NextResponse.json({ 
       pitchDeck,
-      creditsRemaining: creditResult.newBalance 
+      credits_used: TOOL_CREDITS[TOOL_TYPE],
+      credits_remaining: creditResult.newBalance,
+      generation_id: generation.id,
     });
   } catch (error) {
     console.error("Pitch deck generation error:", error);

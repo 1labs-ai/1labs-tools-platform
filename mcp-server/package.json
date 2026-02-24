@@ -1,0 +1,45 @@
+{
+  "name": "@1labs/mcp-tools",
+  "version": "1.0.0",
+  "description": "MCP Server for 1Labs AI Tools - Generate roadmaps, PRDs, pitch decks, and personas",
+  "main": "dist/index.js",
+  "bin": {
+    "1labs-tools-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch index.ts",
+    "start": "node dist/index.js",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-tools",
+    "1labs",
+    "claude",
+    "product-management"
+  ],
+  "author": "1Labs AI <hello@1labs.ai>",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/1labs-ai/1labs-tools-platform"
+  },
+  "homepage": "https://1labs.ai/docs/mcp"
+}

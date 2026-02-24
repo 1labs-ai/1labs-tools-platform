@@ -12,7 +12,13 @@ export const save = mutation({
       v.literal("prd"),
       v.literal("pitch_deck"),
       v.literal("persona"),
-      v.literal("competitive_analysis")
+      v.literal("competitive_analysis"),
+      v.literal("user_stories"),
+      v.literal("meeting_notes"),
+      v.literal("release_notes"),
+      v.literal("faq_generator"),
+      v.literal("tech_spec"),
+      v.literal("gtm")
     ),
     title: v.optional(v.string()),
     input: v.any(),
@@ -56,7 +62,11 @@ export const list = query({
         v.literal("prd"),
         v.literal("pitch_deck"),
         v.literal("persona"),
-        v.literal("competitive_analysis")
+        v.literal("competitive_analysis"),
+        v.literal("user_stories"),
+        v.literal("meeting_notes"),
+        v.literal("release_notes"),
+        v.literal("faq_generator")
       )
     ),
     limit: v.optional(v.number()),
